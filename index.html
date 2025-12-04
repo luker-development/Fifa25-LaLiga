@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>La Liga – Draft Explorer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #0f172a;
+      background-color: #0b1120;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: radial-gradient(circle at top left, #0ea5e9 0, #020617 45%, #020617 100%);
+      color: #e5e7eb;
+    }
+
+    .app {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 24px;
+      background: rgba(15, 23, 42, 0.96);
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+    }
+
+    h1 {
+      margin-top: 0;
+      margin-bottom: 4px;
+      font-size: 1.8rem;
+      letter-spacing: 0.03em;
+    }
+
+    .subtitle {
+      margin: 0 0 20px;
+      font-size: 0.9rem;
+      color: #9ca3af;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 20px;
+    }
+
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 14px;
+      padding: 12px 14px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.7);
+    }
+
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #e5e7eb;
+    }
+
+    .card small {
+      display: block;
+      margin-bottom: 8px;
+      color: #9ca3af;
+      font-size: 0.75rem;
+    }
+
+    .layout aside {
+      min-width: 0;
+    }
+
+    /* Teams */
+    .teams-list {
+      max-height: 520px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .team-search {
+      width: 100%;
+      padding: 6px 8px;
+      margin-bottom: 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.8);
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      font-size: 0.85rem;
+    }
+
+    .team-search::placeholder {
+      color: #6b7280;
+    }
+
+    .team-item {
+      padding: 6px 8px;
+      margin-bottom: 4px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      border: 1px solid transparent;
+      transition: background 0.15s ease, border-color 0.15s ease, transform 0.08s ease;
+    }
+
+    .team-item:hover {
+      background: rgba(15, 23, 42, 0.9);
+      border-color: rgba(56, 189, 248, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .team-name {
+      font-weight: 600;
+      color: #f9fafb;
+    }
+
+    .team-meta {
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+
+    .pill {
+      display: inline-flex;
+      padding: 1px 6px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      margin-left: 4px;
+      color: #e5e7eb;
+    }
+
+    /* Filters */
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 900px) {
+      .filters {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 600px) {
+      .filters {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .filter-group label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #9ca3af;
+    }
+
+    .filter-group input,
+    .filter-group select {
+      padding: 5px 8px;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+      color: #e5e7eb;
+      font-size: 0.8rem;
+    }
+
+    .filter-group input::placeholder {
+      color: #6b7280;
+    }
+
+    .filters-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .filters-row .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.8rem;
+      color: #9ca3af;
+    }
+
+    .btn-reset {
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(248, 250, 252, 0.3);
+      background: transparent;
+      color: #e5e7eb;
+      font-size: 0.75rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-reset:hover {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    /* Table */
+    .table-wrapper {
+      max-height: 520px;
+      overflow: auto;
+      border-radius: 12px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    thead {
+      background: linear-gradient(to right, #0f172a, #020617);
+    }
+
+    th, td {
+      padding: 6px 8px;
+      text-align: left;
+      border-bottom: 1px solid rgba(15, 23, 42, 1);
+      white-space: nowrap;
+    }
+
+    th {
+      font-size: 0.72rem;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: rgba(15, 23, 42, 0.9);
+    }
+
+    tbody tr:nth-child(odd) {
+      background-color: rgba(15, 23, 42, 0.85);
+    }
+
+    tbody tr:hover {
+      background-color: rgba(15, 23, 42, 1);
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      padding: 2px 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.8);
+    }
+
+    .fav-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .fav-btn span {
+      transition: transform 0.08s ease;
+    }
+
+    .fav-btn:hover span {
+      transform: scale(1.1);
+    }
+
+    .fav-on {
+      color: #facc15;
+      text-shadow: 0 0 6px rgba(250, 204, 21, 0.6);
+    }
+
+    .fav-off {
+      color: #4b5563;
+    }
+
+    .stats-bar {
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+      color: #9ca3af;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .stats-bar strong {
+      color: #e5e7eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>La Liga · Draft Explorer</h1>
+    <p class="subtitle">
+      Browse clubs and players for the family tournament. Filter, compare, and favorite before the draft.
+    </p>
+
+    <div class="layout">
+      <!-- TEAMS (catálogo informativo, sin afectar players) -->
+      <aside class="card">
+        <h2>Clubs</h2>
+        <small>List of clubs allowed in the tournament.</small>
+        <input id="teamSearch" type="text" class="team-search" placeholder="Search club..." />
+        <div id="teamsList" class="teams-list"></div>
+      </aside>
+
+      <!-- PLAYERS -->
+      <section class="card">
+        <h2>Players</h2>
+        <small>Filters + favorites. Favorites are stored in this browser only.</small>
+
+        <div class="filters">
+          <div class="filter-group">
+            <label for="filterName">Name</label>
+            <input id="filterName" type="text" placeholder="e.g. Messi" />
+          </div>
+          <div class="filter-group">
+            <label for="filterPosition">Position</label>
+            <select id="filterPosition">
+              <option value="">Any</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filterNationality">Nationality</label>
+            <select id="filterNationality">
+              <option value="">Any</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filterAttribute">Attribute</label>
+            <select id="filterAttribute">
+              <option value="">Any</option>
+              <option value="overall_rating">Overall</option>
+              <option value="potential">Potential</option>
+              <option value="finishing">Finishing</option>
+              <option value="short_passing">Short passing</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label for="filterAttrMin">Attr. min</label>
+            <input id="filterAttrMin" type="number" min="0" max="99" />
+          </div>
+          <div class="filter-group">
+            <label for="filterAttrMax">Attr. max</label>
+            <input id="filterAttrMax" type="number" min="0" max="99" />
+          </div>
+          <div class="filter-group">
+            <label for="filterPriceMin">Price min (€)</label>
+            <input id="filterPriceMin" type="number" min="0" />
+          </div>
+          <div class="filter-group">
+            <label for="filterPriceMax">Price max (€)</label>
+            <input id="filterPriceMax" type="number" min="0" />
+          </div>
+        </div>
+
+        <div class="filters-row">
+          <div class="checkbox-group">
+            <input type="checkbox" id="filterFavorites" />
+            <label for="filterFavorites">Show only favorites</label>
+          </div>
+          <button id="btnReset" class="btn-reset" type="button">
+            ✕ Clear filters
+          </button>
+        </div>
+
+        <div class="stats-bar">
+          <span>Players shown: <strong id="statsCount">0</strong></span>
+          <span>Favorites: <strong id="statsFavorites">0</strong></span>
+        </div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Fav</th>
+                <th>Name</th>
+                <th>Pos</th>
+                <th>Nat.</th>
+                <th>Overall</th>
+                <th>Potential</th>
+                <th>Price (€)</th>
+              </tr>
+            </thead>
+            <tbody id="playersTbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    /************************************************************
+     * TEAMS – lista fija del torneo
+     ************************************************************/
+    const teams = [
+      // España – LaLiga (Primera División)
+      { id: 1,  name: "Almería",          league: "LaLiga",             country: "Spain" },
+      { id: 2,  name: "Cádiz",            league: "LaLiga",             country: "Spain" },
+      { id: 3,  name: "Granada",          league: "LaLiga",             country: "Spain" },
+
+      // España – LaLiga Hypermotion (Segunda División)
+      { id: 4,  name: "Albacete",         league: "LaLiga Hypermotion", country: "Spain" },
+      { id: 5,  name: "Burgos",           league: "LaLiga Hypermotion", country: "Spain" },
+      { id: 6,  name: "Eibar",            league: "LaLiga Hypermotion", country: "Spain" },
+      { id: 7,  name: "Elche",            league: "LaLiga Hypermotion", country: "Spain" },
+      { id: 8,  name: "Eldense",          league: "LaLiga Hypermotion", country: "Spain" },
+      { id: 9,  name: "Levante",          league: "LaLiga Hypermotion", country: "Spain" },
+      { id: 10, name: "Mirandés",         league: "LaLiga Hypermotion", country: "Spain" },
+      { id: 11, name: "Racing Santander", league: "LaLiga Hypermotion", country: "Spain" },
+      { id: 12, name: "Real Oviedo",      league: "LaLiga Hypermotion", country: "Spain" },
+      { id: 13, name: "Sporting Gijón",   league: "LaLiga Hypermotion", country: "Spain" },
+      { id: 14, name: "Tenerife",         league: "LaLiga Hypermotion", country: "Spain" },
+      { id: 15, name: "Zaragoza",         league: "LaLiga Hypermotion", country: "Spain" },
+
+      // Italia – Serie A
+      { id: 16, name: "Frosinone",        league: "Serie A",            country: "Italy" },
+      { id: 17, name: "Salernitana",      league: "Serie A",            country: "Italy" },
+      { id: 18, name: "Sassuolo",         league: "Serie A",            country: "Italy" },
+
+      // Italia – Serie B
+      { id: 19, name: "Bari",             league: "Serie B",            country: "Italy" },
+      { id: 20, name: "Cittadella",       league: "Serie B",            country: "Italy" },
+      { id: 21, name: "Cremonese",        league: "Serie B",            country: "Italy" },
+      { id: 22, name: "Modena",           league: "Serie B",            country: "Italy" },
+      { id: 23, name: "Palermo",          league: "Serie B",            country: "Italy" },
+      { id: 24, name: "Pisa",             league: "Serie B",            country: "Italy" },
+      { id: 25, name: "Reggiana",         league: "Serie B",            country: "Italy" },
+      { id: 26, name: "Südtirol",         league: "Serie B",            country: "Italy" },
+      { id: 27, name: "Sampdoria",        league: "Serie B",            country: "Italy" },
+
+      // Alemania – grupos
+      { id: 28, name: "FC Köln",              league: "Germany (Bundesliga pyramid)", country: "Germany" },
+      { id: 29, name: "FC Kaiserslautern",    league: "Germany (Bundesliga pyramid)", country: "Germany" },
+      { id: 30, name: "FC Nürnberg",          league: "Germany (Bundesliga pyramid)", country: "Germany" },
+      { id: 31, name: "Eintracht Braunschweig", league: "Germany (Bundesliga pyramid)", country: "Germany" },
+      { id: 32, name: "SV Elversberg",        league: "Germany (Bundesliga pyramid)", country: "Germany" },
+      { id: 33, name: "Hamburger SV",         league: "Germany (Bundesliga pyramid)", country: "Germany" },
+      { id: 34, name: "Hannover 96",          league: "Germany (Bundesliga pyramid)", country: "Germany" },
+      { id: 35, name: "Hertha BSC",           league: "Germany (Bundesliga pyramid)", country: "Germany" },
+      { id: 36, name: "Karlsruher SC",        league: "Germany (Bundesliga pyramid)", country: "Germany" },
+      { id: 37, name: "SC Paderborn 07",      league: "Germany (Bundesliga pyramid)", country: "Germany" },
+      { id: 38, name: "FC Schalke 04",        league: "Germany (Bundesliga pyramid)", country: "Germany" },
+      { id: 39, name: "SSV Jahn Regensburg",  league: "Germany (Bundesliga pyramid)", country: "Germany" },
+      { id: 40, name: "SSV Ulm 1846",         league: "Germany (Bundesliga pyramid)", country: "Germany" },
+
+      // Inglaterra – League Two
+      { id: 41, name: "Accrington Stanley",   league: "EFL League Two",  country: "England" },
+      { id: 42, name: "Barrow AFC",           league: "EFL League Two",  country: "England" },
+      { id: 43, name: "Bradford City",        league: "EFL League Two",  country: "England" },
+      { id: 44, name: "Bromley",              league: "EFL League Two",  country: "England" },
+      { id: 45, name: "Carlisle United",      league: "EFL League Two",  country: "England" },
+      { id: 46, name: "Cheltenham Town",      league: "EFL League Two",  country: "England" },
+      { id: 47, name: "Chesterfield",         league: "EFL League Two",  country: "England" },
+      { id: 48, name: "Colchester United",    league: "EFL League Two",  country: "England" },
+      { id: 49, name: "Crewe Alexandra",      league: "EFL League Two",  country: "England" },
+      { id: 50, name: "Doncaster Rovers",     league: "EFL League Two",  country: "England" },
+      { id: 51, name: "Fleetwood Town",       league: "EFL League Two",  country: "England" },
+      { id: 52, name: "Gillingham",           league: "EFL League Two",  country: "England" },
+      { id: 53, name: "Grimsby Town",         league: "EFL League Two",  country: "England" },
+      { id: 54, name: "Harrogate Town",       league: "EFL League Two",  country: "England" },
+      { id: 55, name: "Milton Keynes Dons",   league: "EFL League Two",  country: "England" },
+      { id: 56, name: "Morecambe",            league: "EFL League Two",  country: "England" },
+      { id: 57, name: "Newport County",       league: "EFL League Two",  country: "England" },
+      { id: 58, name: "Notts County",         league: "EFL League Two",  country: "England" },
+      { id: 59, name: "Port Vale",            league: "EFL League Two",  country: "England" },
+      { id: 60, name: "Salford City",         league: "EFL League Two",  country: "England" },
+      { id: 61, name: "Swindon Town",         league: "EFL League Two",  country: "England" },
+      { id: 62, name: "Tranmere Rovers",      league: "EFL League Two",  country: "England" },
+      { id: 63, name: "Walsall",              league: "EFL League Two",  country: "England" },
+      { id: 64, name: "AFC Wimbledon",        league: "EFL League Two",  country: "England" },
+
+      // Dinamarca – Superliga
+      { id: 65, name: "Aarhus GF (AGF)",      league: "Superliga",       country: "Denmark" },
+      { id: 66, name: "Brøndby IF",           league: "Superliga",       country: "Denmark" },
+      { id: 67, name: "FC København",         league: "Superliga",       country: "Denmark" },
+      { id: 68, name: "AC Lyngby",            league: "Superliga",       country: "Denmark" },
+      { id: 69, name: "FC Midtjylland",       league: "Superliga",       country: "Denmark" },
+      { id: 70, name: "FC Nordsjælland",      league: "Superliga",       country: "Denmark" },
+      { id: 71, name: "Randers FC",           league: "Superliga",       country: "Denmark" },
+      { id: 72, name: "Silkeborg IF",         league: "Superliga",       country: "Denmark" },
+      { id: 73, name: "Vejle Boldklub",       league: "Superliga",       country: "Denmark" },
+      { id: 74, name: "Viborg FF",            league: "Superliga",       country: "Denmark" },
+
+      // Australia – A-League
+      { id: 75, name: "Adelaide United",      league: "A-League",        country: "Australia" },
+      { id: 76, name: "Auckland FC",          league: "A-League",        country: "Australia" },
+      { id: 77, name: "Brisbane Roar",        league: "A-League",        country: "Australia" },
+      { id: 78, name: "Central Coast Mariners", league: "A-League",      country: "Australia" },
+      { id: 79, name: "Macarthur FC",         league: "A-League",        country: "Australia" },
+      { id: 80, name: "Melbourne City",       league: "A-League",        country: "Australia" },
+      { id: 81, name: "Melbourne Victory",    league: "A-League",        country: "Australia" },
+      { id: 82, name: "Newcastle Jets",       league: "A-League",        country: "Australia" },
+      { id: 83, name: "Perth Glory",          league: "A-League",        country: "Australia" },
+      { id: 84, name: "Sydney FC",            league: "A-League",        country: "Australia" },
+      { id: 85, name: "Wellington Phoenix",   league: "A-League",        country: "Australia" },
+      { id: 86, name: "Western United",       league: "A-League",        country: "Australia" },
+      { id: 87, name: "Western Sydney Wanderers", league: "A-League",    country: "Australia" }
+    ];
+
+    const FAVORITES_KEY = "laLigaDraftFavorites";
+    let favoriteIds = new Set();
+    let players = [];
+
+    const filterState = {
+      name: "",
+      position: "",
+      nationality: "",
+      attrKey: "",
+      attrMin: "",
+      attrMax: "",
+      priceMin: "",
+      priceMax: "",
+      favoritesOnly: false
+    };
+
+    // DOM
+    const teamsListEl         = document.getElementById("teamsList");
+    const teamSearchEl        = document.getElementById("teamSearch");
+    const playersTbodyEl      = document.getElementById("playersTbody");
+    const statsCountEl        = document.getElementById("statsCount");
+    const statsFavoritesEl    = document.getElementById("statsFavorites");
+    const filterNameEl        = document.getElementById("filterName");
+    const filterPositionEl    = document.getElementById("filterPosition");
+    const filterNationalityEl = document.getElementById("filterNationality");
+    const filterAttributeEl   = document.getElementById("filterAttribute");
+    const filterAttrMinEl     = document.getElementById("filterAttrMin");
+    const filterAttrMaxEl     = document.getElementById("filterAttrMax");
+    const filterPriceMinEl    = document.getElementById("filterPriceMin");
+    const filterPriceMaxEl    = document.getElementById("filterPriceMax");
+    const filterFavoritesEl   = document.getElementById("filterFavorites");
+    const btnResetEl          = document.getElementById("btnReset");
+
+    function loadFavorites() {
+      try {
+        const raw = localStorage.getItem(FAVORITES_KEY);
+        if (!raw) return;
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) favoriteIds = new Set(arr);
+      } catch (e) {
+        console.warn("Failed to load favorites", e);
+      }
+    }
+
+    function saveFavorites() {
+      try {
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify(Array.from(favoriteIds)));
+      } catch (e) {
+        console.warn("Failed to save favorites", e);
+      }
+    }
+
+    function toggleFavorite(id) {
+      if (favoriteIds.has(id)) favoriteIds.delete(id);
+      else favoriteIds.add(id);
+      saveFavorites();
+      renderPlayers();
+    }
+
+    function uniqueSorted(arr) {
+      return Array.from(new Set(arr.filter(Boolean))).sort((a, b) => a.localeCompare(b));
+    }
+
+    function formatPrice(value) {
+      if (value == null || isNaN(value)) return "-";
+      const v = Number(value);
+      if (v >= 1_000_000) return (v / 1_000_000).toFixed(1) + "M";
+      if (v >= 1_000)     return (v / 1_000).toFixed(1) + "K";
+      return String(v.toFixed ? v.toFixed(0) : v);
+    }
+
+    function renderTeams() {
+      const q = teamSearchEl.value.trim().toLowerCase();
+      teamsListEl.innerHTML = "";
+
+      teams.forEach(team => {
+        if (q && !team.name.toLowerCase().includes(q)) return;
+
+        const div = document.createElement("div");
+        div.className = "team-item";
+
+        const nameEl = document.createElement("div");
+        nameEl.className = "team-name";
+        nameEl.textContent = team.name;
+
+        const metaEl = document.createElement("div");
+        metaEl.className = "team-meta";
+        metaEl.innerHTML = `${team.league} <span class="pill">${team.country}</span>`;
+
+        div.appendChild(nameEl);
+        div.appendChild(metaEl);
+
+        teamsListEl.appendChild(div);
+      });
+    }
+
+    function setupFilterOptions() {
+      filterPositionEl.innerHTML = '<option value="">Any</option>';
+      filterNationalityEl.innerHTML = '<option value="">Any</option>';
+
+      const positions = uniqueSorted(
+        players.map(p => p.primary_position || p.positions || p.position)
+      );
+      const nats = uniqueSorted(players.map(p => p.nationality));
+
+      for (const pos of positions) {
+        const opt = document.createElement("option");
+        opt.value = pos;
+        opt.textContent = pos;
+        filterPositionEl.appendChild(opt);
+      }
+
+      for (const n of nats) {
+        const opt = document.createElement("option");
+        opt.value = n;
+        opt.textContent = n;
+        filterNationalityEl.appendChild(opt);
+      }
+    }
+
+    function applyFilters() {
+      return players.filter(p => {
+        const name = p.name || "";
+        const pos  = p.primary_position || p.position || "";
+        const nat  = p.nationality || "";
+
+        if (filterState.name &&
+            !name.toLowerCase().includes(filterState.name.toLowerCase())) {
+          return false;
+        }
+
+        if (filterState.position && pos !== filterState.position) return false;
+        if (filterState.nationality && nat !== filterState.nationality) return false;
+
+        if (filterState.attrKey) {
+          const v = Number(p[filterState.attrKey] ?? NaN);
+          if (!Number.isFinite(v)) return false;
+          if (filterState.attrMin !== "" && v < Number(filterState.attrMin)) return false;
+          if (filterState.attrMax !== "" && v > Number(filterState.attrMax)) return false;
+        }
+
+        const price = Number(p.value_euro ?? 0);
+        if (filterState.priceMin !== "" && price < Number(filterState.priceMin)) return false;
+        if (filterState.priceMax !== "" && price > Number(filterState.priceMax)) return false;
+
+        if (filterState.favoritesOnly && !favoriteIds.has(p.id)) return false;
+
+        return true;
+      });
+    }
+
+    function renderPlayers() {
+      const filtered = applyFilters();
+      playersTbodyEl.innerHTML = "";
+
+      filtered.forEach(p => {
+        const tr = document.createElement("tr");
+
+        const tdFav = document.createElement("td");
+        const favBtn = document.createElement("button");
+        favBtn.type = "button";
+        favBtn.className = "fav-btn";
+        const isFav = favoriteIds.has(p.id);
+        favBtn.innerHTML = `<span class="${isFav ? "fav-on" : "fav-off"}">${isFav ? "★" : "☆"}</span>`;
+        favBtn.addEventListener("click", () => toggleFavorite(p.id));
+        tdFav.appendChild(favBtn);
+        tr.appendChild(tdFav);
+
+        const tdName = document.createElement("td");
+        tdName.textContent = p.name || "";
+        tr.appendChild(tdName);
+
+        const tdPos = document.createElement("td");
+        tdPos.innerHTML = `<span class="badge">${p.primary_position || p.position || "-"}</span>`;
+        tr.appendChild(tdPos);
+
+        const tdNat = document.createElement("td");
+        tdNat.textContent = p.nationality || "";
+        tr.appendChild(tdNat);
+
+        const tdOv = document.createElement("td");
+        tdOv.textContent = p.overall_rating ?? "-";
+        tr.appendChild(tdOv);
+
+        const tdPot = document.createElement("td");
+        tdPot.textContent = p.potential ?? "-";
+        tr.appendChild(tdPot);
+
+        const tdPrice = document.createElement("td");
+        tdPrice.textContent = formatPrice(p.value_euro);
+        tr.appendChild(tdPrice);
+
+        playersTbodyEl.appendChild(tr);
+      });
+
+      statsCountEl.textContent = filtered.length;
+      statsFavoritesEl.textContent = favoriteIds.size;
+    }
+
+    function wireEvents() {
+      teamSearchEl.addEventListener("input", renderTeams);
+
+      filterNameEl.addEventListener("input", () => {
+        filterState.name = filterNameEl.value.trim();
+        renderPlayers();
+      });
+
+      filterPositionEl.addEventListener("change", () => {
+        filterState.position = filterPositionEl.value;
+        renderPlayers();
+      });
+
+      filterNationalityEl.addEventListener("change", () => {
+        filterState.nationality = filterNationalityEl.value;
+        renderPlayers();
+      });
+
+      filterAttributeEl.addEventListener("change", () => {
+        filterState.attrKey = filterAttributeEl.value;
+        renderPlayers();
+      });
+
+      filterAttrMinEl.addEventListener("input", () => {
+        filterState.attrMin = filterAttrMinEl.value;
+        renderPlayers();
+      });
+
+      filterAttrMaxEl.addEventListener("input", () => {
+        filterState.attrMax = filterAttrMaxEl.value;
+        renderPlayers();
+      });
+
+      filterPriceMinEl.addEventListener("input", () => {
+        filterState.priceMin = filterPriceMinEl.value;
+        renderPlayers();
+      });
+
+      filterPriceMaxEl.addEventListener("input", () => {
+        filterState.priceMax = filterPriceMaxEl.value;
+        renderPlayers();
+      });
+
+      filterFavoritesEl.addEventListener("change", () => {
+        filterState.favoritesOnly = filterFavoritesEl.checked;
+        renderPlayers();
+      });
+
+      btnResetEl.addEventListener("click", () => {
+        Object.assign(filterState, {
+          name: "",
+          position: "",
+          nationality: "",
+          attrKey: "",
+          attrMin: "",
+          attrMax: "",
+          priceMin: "",
+          priceMax: "",
+          favoritesOnly: false
+        });
+
+        filterNameEl.value = "";
+        filterPositionEl.value = "";
+        filterNationalityEl.value = "";
+        filterAttributeEl.value = "";
+        filterAttrMinEl.value = "";
+        filterAttrMaxEl.value = "";
+        filterPriceMinEl.value = "";
+        filterPriceMaxEl.value = "";
+        filterFavoritesEl.checked = false;
+        teamSearchEl.value = "";
+
+        renderTeams();
+        renderPlayers();
+      });
+    }
+
+    async function loadPlayersJson() {
+      const res = await fetch("players.min.json");
+      const data = await res.json();
+
+      players = data.map(p => {
+        const copy = { ...p };
+        if (copy.id === undefined || copy.id === null) {
+          copy.id = copy.name + "|" + (copy.primary_position || copy.positions || "");
+        }
+        if (!copy.primary_position && copy.positions) {
+          copy.primary_position = String(copy.positions).split(",")[0].trim();
+        }
+        return copy;
+      });
+
+      setupFilterOptions();
+      renderPlayers();
+    }
+
+    async function init() {
+      loadFavorites();
+      wireEvents();
+      renderTeams();
+      await loadPlayersJson();
+    }
+
+    init();
+  </script>
+</body>
+</html>

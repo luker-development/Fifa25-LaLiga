@@ -1,0 +1,5 @@
+{
+  "/draft-explorer/page": "app/draft-explorer/page.js",
+  "/clubs/page": "app/clubs/page.js",
+  "/page": "app/page.js"
+}

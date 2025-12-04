@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Club {
+  id       String   @id @default(cuid())
+  name     String   @unique
+  badgeUrl String
+  league   String
+  overall  Int
+  attack   Int
+  midfield Int
+  defense  Int
+  players  Player[]
+}
+
+model Player {
+  id           String      @id @default(cuid())
+  kaggleId     Int         @unique
+  name         String
+  clubId       String?
+  club         Club?       @relation(fields: [clubId], references: [id])
+  position     String
+  nationality  String
+  overall      Int
+  potential    Int
+  valueEUR     Int
+  wageEUR      Int
+  age          Int
+  heightCm     Int
+  weightKg     Int
+  preferredFoot String
+  weakFoot     Int
+  skillMoves   Int
+  pace         Int
+  shooting     Int
+  passing      Int
+  dribbling    Int
+  defending    Int
+  physicality  Int
+  gkHandling   Int?
+  gkReflexes   Int?
+  traits       String?
+  draftPicks   DraftPick[]
+
+  @@index([clubId])
+}
+
+model DraftSession {
+  id         String      @id @default(cuid())
+  name       String
+  budget     Int
+  maxPlayers Int
+  snake      Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  teams      DraftTeam[]
+  rounds     DraftRound[]
+  picks      DraftPick[]
+}
+
+model DraftTeam {
+  id              String        @id @default(cuid())
+  name            String
+  owner           String
+  sessionId       String
+  session         DraftSession  @relation(fields: [sessionId], references: [id])
+  budgetRemaining Int
+  picks           DraftPick[]
+
+  @@index([sessionId])
+}
+
+model DraftRound {
+  id          String        @id @default(cuid())
+  sessionId   String
+  roundNumber Int
+  locked      Boolean       @default(false)
+  session     DraftSession  @relation(fields: [sessionId], references: [id])
+  picks       DraftPick[]
+  @@unique([sessionId, roundNumber])
+  @@index([sessionId])
+}
+
+model DraftPick {
+  id        String        @id @default(cuid())
+  sessionId String
+  roundId   String
+  teamId    String
+  playerId  String        @unique
+  cost      Int
+  createdAt DateTime      @default(now())
+  session   DraftSession  @relation(fields: [sessionId], references: [id])
+  round     DraftRound    @relation(fields: [roundId], references: [id])
+  team      DraftTeam     @relation(fields: [teamId], references: [id])
+  player    Player        @relation(fields: [playerId], references: [id])
+
+  @@index([sessionId])
+  @@index([roundId])
+  @@index([teamId])
+}
