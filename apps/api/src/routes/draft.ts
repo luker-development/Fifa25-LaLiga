@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { Router } from 'express';
 import { prisma } from '@infrastructure/prisma';
 import { AppError } from '@shared/errors';
@@ -96,7 +97,9 @@ router.post('/sessions/:id/picks', async (req, res, next) => {
     });
     if (!session) throw new AppError('Session not found', 404);
 
-    const team = session.teams.find((t) => t.id === teamId);
+    const team = session.teams.find(
+      (t: { id: string; budgetRemaining: number }) => t.id === teamId
+    );
     if (!team) throw new AppError('Team not in session', 400);
     if (team.budgetRemaining < cost) throw new AppError('Budget exceeded', 400);
 
@@ -116,7 +119,7 @@ router.post('/sessions/:id/picks', async (req, res, next) => {
 
     if (round.locked) throw new AppError('Round locked', 400);
 
-    const pick = await prisma.$transaction(async (tx) => {
+    const pick = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const createdPick = await tx.draftPick.create({
         data: {
           sessionId,

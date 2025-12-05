@@ -7,12 +7,13 @@ type PlayersResponse = { data: Player[]; total: number; page: number; pageSize: 
 export default async function PlayersPage({
   searchParams
 }: {
-  searchParams: { position?: string; nationality?: string; name?: string };
+  searchParams: Promise<{ position?: string; nationality?: string; name?: string }>;
 }) {
+  const resolvedParams = await searchParams;
   const query = new URLSearchParams();
-  if (searchParams.position) query.set('position', searchParams.position);
-  if (searchParams.nationality) query.set('nationality', searchParams.nationality);
-  if (searchParams.name) query.set('name', searchParams.name);
+  if (resolvedParams.position) query.set('position', resolvedParams.position);
+  if (resolvedParams.nationality) query.set('nationality', resolvedParams.nationality);
+  if (resolvedParams.name) query.set('name', resolvedParams.name);
 
   const players = await apiFetch<PlayersResponse>(`/players?${query.toString()}`);
 

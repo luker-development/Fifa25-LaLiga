@@ -3,7 +3,6 @@
 
 import { useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { apiFetch } from '../../lib/api';
-import type { Club } from '@domain/models';
 import './draft-explorer.css';
 
 type DraftPlayer = {
@@ -166,7 +165,8 @@ const formatCurrency = (value: number) =>
 
 export default function DraftExplorerPage() {
   const [players, setPlayers] = useState<DraftPlayer[]>([]);
-  const [clubs, setClubs] = useState<string[]>([]);
+  // Use the curated in-repo list; avoid relying on remote data for the sidebar.
+  const [clubs, setClubs] = useState<string[]>(DEFAULT_TEAMS);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
@@ -213,13 +213,10 @@ export default function DraftExplorerPage() {
     const load = async () => {
       setLoading(true);
       try {
-        const [playerData, clubData] = await Promise.all([
-          apiFetch<DraftPlayer[]>('/api/players'),
-          apiFetch<Club[]>('/clubs').catch(() => [])
-        ]);
+        const playerData = await apiFetch<DraftPlayer[]>('/api/players');
         if (!active) return;
         setPlayers(playerData);
-        setClubs(clubData.map((club) => club.name));
+        setClubs(DEFAULT_TEAMS);
       } catch (err: any) {
         if (!active) return;
         setError(err?.message ?? 'Error al cargar jugadores');
@@ -458,7 +455,7 @@ export default function DraftExplorerPage() {
                   <tbody>
                     {pagedPlayers.map((player) => (
                       <tr key={player.id}>
-                        <td>
+                        <td data-label="Fav">
                           <button
                             className="favorite-button"
                             onClick={() => toggleFavorite(player.id)}
@@ -467,17 +464,17 @@ export default function DraftExplorerPage() {
                             {favorites.has(player.id) ? '\u2605' : '\u2606'}
                           </button>
                         </td>
-                        <td>
+                        <td data-label="Nombre">
                           <div className="player-name">{player.name}</div>
                           <div className="player-sub">Principal: {player.primary_position}</div>
                         </td>
-                        <td>{player.positions.replace(/,/g, ' / ')}</td>
-                        <td>{player.nationality}</td>
-                        <td>{player.overall_rating}</td>
-                        <td>{player.potential}</td>
-                        <td>{player.finishing}</td>
-                        <td>{player.short_passing}</td>
-                        <td>{formatCurrency(player.value_euro)}</td>
+                        <td data-label="Posiciones">{player.positions.replace(/,/g, ' / ')}</td>
+                        <td data-label="Nacionalidad">{player.nationality}</td>
+                        <td data-label="Global">{player.overall_rating}</td>
+                        <td data-label="Potencial">{player.potential}</td>
+                        <td data-label="Definición">{player.finishing}</td>
+                        <td data-label="Pase corto">{player.short_passing}</td>
+                        <td data-label="Valor">{formatCurrency(player.value_euro)}</td>
                       </tr>
                     ))}
                   </tbody>

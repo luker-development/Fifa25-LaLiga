@@ -1,5 +1,9 @@
 {
+  "/_not-found/page": "app/_not-found/page.js",
+  "/compare/page": "app/compare/page.js",
   "/draft-explorer/page": "app/draft-explorer/page.js",
   "/clubs/page": "app/clubs/page.js",
-  "/page": "app/page.js"
+  "/draft/[sessionId]/page": "app/draft/[sessionId]/page.js",
+  "/page": "app/page.js",
+  "/players/page": "app/players/page.js"
 }

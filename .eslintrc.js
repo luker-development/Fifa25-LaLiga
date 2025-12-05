@@ -5,8 +5,14 @@ module.exports = {
     project: './tsconfig.json',
     tsconfigRootDir: __dirname
   },
+  settings: {
+    next: {
+      rootDir: ['apps/web']
+    }
+  },
   rules: {
     '@typescript-eslint/explicit-function-return-type': 'off',
-    'no-console': 'warn'
+    'no-console': 'warn',
+    'next/no-html-link-for-pages': 'off'
   }
 };

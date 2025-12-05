@@ -1,4 +1,4 @@
-// File: C:\Users\bigli\Projects\Fifa25-Tournament\apps\web\app\layout.tsx
+// File: C:\Users\luker\Fifa25-LaLiga\apps\web\app\layout.tsx
 import * as entry from '../../../app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

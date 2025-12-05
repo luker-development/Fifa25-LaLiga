@@ -12,7 +12,7 @@
     "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
     "build:api": "tsc -p apps/api/tsconfig.json",
     "build:web": "next build apps/web",
-    "start:api": "node dist/apps/api/src/index.js",
+    "start:api": "node -r tsconfig-paths/register dist/apps/api/apps/api/src/index.js",
     "start:web": "next start apps/web -H 0.0.0.0 -p 3000",
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write \"**/*.{js,ts,tsx,json,md}\"",

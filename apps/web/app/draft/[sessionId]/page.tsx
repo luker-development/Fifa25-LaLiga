@@ -1,14 +1,13 @@
 import { apiFetch } from '../../../lib/api';
 
-type Params = { params: { sessionId: string } };
-
-type DraftSession = Awaited<ReturnType<typeof fetchSession>>;
+type Params = { params: Promise<{ sessionId: string }> };
 
 const fetchSession = (id: string) =>
   apiFetch<any>(`/draft/sessions/${id}`); // keep loose type for now
 
 export default async function DraftSessionPage({ params }: Params) {
-  const session = await fetchSession(params.sessionId);
+  const { sessionId } = await params;
+  const session = await fetchSession(sessionId);
 
   return (
     <div className="grid">

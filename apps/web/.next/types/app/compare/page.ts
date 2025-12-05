@@ -1,4 +1,4 @@
-// File: C:\Users\bigli\Projects\Fifa25-Tournament\apps\web\app\compare\page.tsx
+// File: C:\Users\luker\Fifa25-LaLiga\apps\web\app\compare\page.tsx
 import * as entry from '../../../../app/compare/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

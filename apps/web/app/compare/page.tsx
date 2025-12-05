@@ -7,9 +7,9 @@ const fetchPair = async (a: string, b: string) =>
 export default async function ComparePage({
   searchParams
 }: {
-  searchParams: { a?: string; b?: string };
+  searchParams: Promise<{ a?: string; b?: string }>;
 }) {
-  const { a, b } = searchParams;
+  const { a, b } = await searchParams;
   const canCompare = a && b;
   const players = canCompare ? await fetchPair(a, b) : [];
 
